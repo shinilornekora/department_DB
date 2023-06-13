@@ -1,20 +1,18 @@
-import React, {SetStateAction, useEffect, useState} from 'react';
-import './App.css';
+import React, { useEffect, useState } from 'react';
+import './styles/App.css';
+import columns from "./components/columns";
+import CreatePopup from "./components/createPopup";
+import deleteComponent from "./components/getDeleteData";
+import EditPopup from "./components/editPopup";
+
 
 function App() {
   const [activeTable, setActiveTable] = useState<string>('');
-  const [queryData, setQueryData] = useState<[{[key: string]: string}]>([{'':''}]);
-  const columns = {
-    'Не выбрано': '',
-    'Дистрибьютор': 'distributor',
-    'Аппаратное обеспечение': 'hardware',
-    'Использует': 'use',
-    'Сотрудник': 'employee',
-    'Отдел': 'department',
-    'Установлено': 'install',
-    'Производитель': 'producer',
-    'Программное обеспечение': 'software',
-  };
+  const [queryData, setQueryData] = useState<[{[key: string]: string}]>();
+  const [editPopup, setEditPopup] = useState<boolean>();
+  const [editActiveElement, setEditActiveElement] = useState<{[key: string]: string}>();
+  const date = new Date().getMilliseconds();
+
   let id: number = 0;
   useEffect(() => {
     async function fetchData() {
@@ -30,13 +28,16 @@ function App() {
       }
     }
     if (activeTable) {
-      fetchData();
+      fetchData().then(r => r);
     }
-  }, [activeTable]);
+  }, [activeTable, date]);
 
   return (
       <div className="App">
         <div className="wrapper">
+          <CreatePopup queryData={queryData} activeTable={activeTable}/>
+          { editPopup && editActiveElement && (<EditPopup activeTable={activeTable} columns={Object.keys(editActiveElement)} rowData={editActiveElement} />) }
+          <div className="buttons">
           <select name="queryTable" id="table" value={activeTable} onChange={(event) => setActiveTable(event.target.value)}>
             {
               Object.keys(columns).map((e: string) => {
@@ -50,6 +51,14 @@ function App() {
             }
           </select>
           {
+            queryData && (
+                  <button>
+                    <a href="#zatemnenie">+ Сделать новую запись</a>
+                  </button>
+              )
+          }
+          </div>
+          {
             queryData &&
               (<table>
                 <tr className="header">
@@ -61,6 +70,11 @@ function App() {
                         {Object.values(e).map((e) => (
                             <td>{e}</td>
                         ))}
+                        <td className="edit" onClick={() => {
+                          setEditPopup(!editPopup);
+                          setEditActiveElement(e);
+                        }}><a href="#zatemnenie2">🖉</a></td>
+                        <td className="delete" onClick={() => deleteComponent(e, activeTable)}>&times;</td>
                       </tr>
                   ))
                 }
