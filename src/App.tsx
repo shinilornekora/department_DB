@@ -10,9 +10,22 @@ function App() {
   const [activeTable, setActiveTable] = useState<string>('');
   const [queryData, setQueryData] = useState<[{[key: string]: string}]>();
   const [editPopup, setEditPopup] = useState<boolean>();
-  const [editActiveElement, setEditActiveElement] = useState<{[key: string]: string}>();
+  const [editActiveElement, setEditActiveElement] = useState<{[key: string]: string}>({});
+  const [searchProcess, setSearchProcess] = useState<{[key: string]: string}>();
+  const searchKeyProcess = Object.keys(searchProcess ?? {})[0];
+  const searchValueProcess = Object.values(searchProcess ?? {})[0];
   const date = new Date().getMilliseconds();
+  function search(searchElement: string) {
+    const ourFilter = prompt("Введите данные для поиска") ?? '';
+    setSearchProcess({[searchElement]: ourFilter});
+  }
+  function isSimular(elementOne: {[key: string]: string}) {
+    console.log(searchProcess)
+    if (!searchProcess)
+      return true;
+    return elementOne[searchKeyProcess] === searchValueProcess;
 
+  }
   let id: number = 0;
   useEffect(() => {
     async function fetchData() {
@@ -62,10 +75,13 @@ function App() {
             queryData &&
               (<table>
                 <tr className="header">
-                  {Object.keys(queryData[0]).map((e) => (<td>{e}</td>))}
+                  {Object.keys(queryData[0]).map((e) => (
+                      <td>
+                        <div onClick={() => search(e)}>🔎</div>  {e}
+                      </td>))}
                 </tr>
                 {
-                  queryData.map((e) => (
+                  queryData.map((e) => { return isSimular(e) ? (
                       <tr>
                         {Object.values(e).map((e) => (
                             <td>{e}</td>
@@ -76,7 +92,7 @@ function App() {
                         }}><a href="#zatemnenie2">🖉</a></td>
                         <td className="delete" onClick={() => deleteComponent(e, activeTable)}>&times;</td>
                       </tr>
-                  ))
+                  ) : ''})
                 }
               </table>)
           }
